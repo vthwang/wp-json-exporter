@@ -1,5 +1,5 @@
 # WordPress JSON Exporter
-Customized for blog systems, this plugin enables the export of your WordPress posts and projects in JSON format.
+Export JSON API for Next.js blog, with support for posts and projects.
 ## Features
 - Export posts and projects as custom JSON API.
 - Using WordPress as a Headless CMS.
