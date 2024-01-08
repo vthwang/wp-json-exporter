@@ -19,6 +19,12 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 				'callback'            => array( $this, 'get_posts' ),
 				'permission_callback' => '__return_true',
 			) );
+
+			register_rest_route( $this->namespace, '/posts/(?P<slug>[a-zA-Z0-9-]+)', array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_post' ),
+				'permission_callback' => '__return_true',
+			) );
 		}
 
 		function get_posts( $request ): array {
@@ -61,6 +67,36 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 					'total_pages'  => $total_pages,
 				]
 			];
+		}
+
+		function get_post( $request ) {
+			$slug = $request['slug'];
+
+			$args = array(
+				'name'        => $slug,
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+				'numberposts' => 1
+			);
+
+			$posts = get_posts( $args );
+
+			if ( empty( $posts ) ) {
+				return new WP_Error( 'no_posts', __( 'Post not found' ), array( 'status' => 404 ) );
+			}
+
+			$post = $posts[0];
+
+			return array(
+				'title'         => $post->post_title,
+				'post_date'     => get_the_date( 'd M / Y', $post->ID ),
+				'updated_date'  => get_the_modified_date( 'd M / Y', $post->ID ),
+				'feature_image' => get_the_post_thumbnail_url( $post->ID, 'full' ),
+				'content'       => apply_filters( 'the_content', $post->post_content ),
+				'excerpt'       => get_the_excerpt( $post->ID ),
+				'tags'          => wp_get_post_tags( $post->ID, array( 'fields' => 'names' ) ),
+				'categories'    => wp_get_post_categories( $post->ID, array( 'fields' => 'names' ) )
+			);
 		}
 	}
 }
