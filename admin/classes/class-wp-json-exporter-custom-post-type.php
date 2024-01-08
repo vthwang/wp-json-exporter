@@ -92,6 +92,7 @@ if ( ! class_exists( 'WP_Json_Exporter_Custom_Post_Type' ) ) {
 
 			$args = array(
 				'labels'              => $labels,
+				'show_in_rest'        => true,
 				'hierarchical'        => true,
 				'public'              => true,
 				'show_ui'             => true,
