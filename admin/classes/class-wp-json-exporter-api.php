@@ -25,6 +25,12 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 				'callback'            => array( $this, 'get_post' ),
 				'permission_callback' => '__return_true',
 			) );
+
+			register_rest_route( $this->namespace, '/projects', array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_projects' ),
+				'permission_callback' => '__return_true',
+			) );
 		}
 
 		function get_posts( $request ): array {
@@ -54,6 +60,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			foreach ( $query->posts as $post ) {
 				$data[] = [
 					'title'          => $post->post_title,
+					'slug'           => $post->post_name,
 					'featured_image' => get_the_post_thumbnail_url( $post->ID, 'full' ),
 					'category'       => str_replace( $this->wordpress_url, $this->redirect_url, get_the_category_list( ', ', '', $post->ID ) ),
 					'date'           => get_the_date( 'd M / Y', $post->ID ),
@@ -69,7 +76,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			];
 		}
 
-		function get_post( $request ) {
+		function get_post( $request ): array|WP_Error {
 			$slug = $request['slug'];
 
 			$args = array(
@@ -97,6 +104,64 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 				'tags'          => wp_get_post_tags( $post->ID, array( 'fields' => 'names' ) ),
 				'categories'    => wp_get_post_categories( $post->ID, array( 'fields' => 'names' ) )
 			);
+		}
+
+		function get_projects($request): array {
+			$page = $request->get_param( 'page' ) ? (int) $request->get_param( 'page' ) : 1;
+
+			$count_args = array(
+				'post_type'      => 'project',
+				'posts_per_page' => - 1,
+			);
+
+			$count_query = new WP_Query( $count_args );
+			$total_posts = $count_query->found_posts;
+			$total_pages = ceil( $total_posts / $this->posts_per_page );
+
+			$args = array(
+				'post_type'           => 'project',
+				'posts_per_page'      => $this->posts_per_page,
+				'ignore_sticky_posts' => true,
+				'orderby'             => 'date',
+				'order'               => 'DESC',
+				'paged'               => $page,
+			);
+
+			$query = new WP_Query( $args );
+			$data  = [];
+
+			foreach ( $query->posts as $post ) {
+				$terms = get_the_terms($post->ID, 'project_category');
+				$categories = [];
+
+				if (!empty($terms) && !is_wp_error($terms)) {
+					foreach ($terms as $term) {
+						$term_link = get_term_link($term);
+						if (!is_wp_error($term_link)) {
+							$categories[] = '<a href="' . esc_url($term_link) . '">' . esc_html($term->name) . '</a>';
+						}
+					}
+				}
+
+				$category_list = implode(', ', $categories);
+				$custom_category_list = str_replace($this->wordpress_url, $this->redirect_url, $category_list);
+
+				$data[] = [
+					'title'          => $post->post_title,
+					'slug'           => $post->post_name,
+					'featured_image' => get_the_post_thumbnail_url( $post->ID, 'full' ),
+					'category'       => $custom_category_list,
+					'date'           => get_the_date( 'd M / Y', $post->ID ),
+				];
+			}
+
+			return [
+				'data' => $data,
+				'meta' => [
+					'current_page' => $page,
+					'total_pages'  => $total_pages,
+				]
+			];
 		}
 	}
 }
