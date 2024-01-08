@@ -20,7 +20,7 @@ if ( ! class_exists( 'WPJsonExporter' ) ) {
 	define( 'WP_JSON_EXPORTER_VERSION', '1.0.0' );
 	define( 'WP_JSON_EXPORTER_DIR', __DIR__ );
 
-	class WPJsonExporter {
+	class WP_Json_Exporter {
 		public function __construct() {
 			$this->register_autoload();
 			$this->register_admin_page();
@@ -41,25 +41,25 @@ if ( ! class_exists( 'WPJsonExporter' ) ) {
 		}
 
 		public function register_admin_page(): void {
-			new WPJsonExporterAdminPage();
+			new WP_Json_Exporter_Admin_Page();
 		}
 
 		public function register_api(): void {
-			new WPJsonExporterAPI();
+			new WP_Json_Exporter_API();
 		}
 	}
 
-	new WPJsonExporter();
+	new WP_Json_Exporter();
 }
 
-if ( class_exists( 'WPJsonExporterActivation' ) ) {
-	register_activation_hook( __FILE__, array( 'WPJsonExporterActivation', 'activate' ) );
+if ( class_exists( 'WP_Json_Exporter_Activation' ) ) {
+	register_activation_hook( __FILE__, array( 'WP_Json_Exporter_Activation', 'activate' ) );
 }
 
-if ( class_exists( 'WPJsonExporterDeactivation' ) ) {
-	register_deactivation_hook( __FILE__, array( 'WPJsonExporterDeactivation', 'deactivate' ) );
+if ( class_exists( 'WP_Json_Exporter_Deactivation' ) ) {
+	register_deactivation_hook( __FILE__, array( 'WP_Json_Exporter_Deactivation', 'deactivate' ) );
 }
 
-if ( class_exists( 'WPJsonExporterUninstall' ) ) {
-	register_uninstall_hook( __FILE__, array( 'WPJsonExporterUninstall', 'uninstall' ) );
+if ( class_exists( 'WP_Json_Exporter_Uninstall' ) ) {
+	register_uninstall_hook( __FILE__, array( 'WP_Json_Exporter_Uninstall', 'uninstall' ) );
 }

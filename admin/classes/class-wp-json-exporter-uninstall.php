@@ -1,9 +1,12 @@
 <?php
 
-if ( ! class_exists( 'WPJsonExporterUninstall' ) ) {
-	class WPJsonExporterUninstall {
+if ( ! class_exists( 'WP_Json_Exporter_Uninstall' ) ) {
+	class WP_Json_Exporter_Uninstall {
 		public static function uninstall(): void {
-			// Do nothing.
+			// remove options
+			delete_option( 'wp_json_exporter_version' );
+			delete_option( 'wp_json_exporter_is_redirect' );
+			delete_option( 'wp_json_exporter_redirect_url' );
 		}
 	}
 }
