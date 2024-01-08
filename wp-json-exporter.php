@@ -21,13 +21,14 @@ if ( ! class_exists( 'WPJsonExporter' ) ) {
 	define( 'WP_JSON_EXPORTER_DIR', __DIR__ );
 
 	class WP_Json_Exporter {
-		public function __construct() {
+		function __construct() {
 			$this->register_autoload();
 			$this->register_admin_page();
+			$this->register_custom_post_type();
 			$this->register_api();
 		}
 
-		private function register_autoload(): void {
+		function register_autoload(): void {
 			spl_autoload_register( function ( $name ) {
 				$name = strtolower( $name );
 				$name = str_replace( '_', '-', $name );
@@ -40,11 +41,15 @@ if ( ! class_exists( 'WPJsonExporter' ) ) {
 			} );
 		}
 
-		public function register_admin_page(): void {
+		function register_admin_page(): void {
 			new WP_Json_Exporter_Admin_Page();
 		}
 
-		public function register_api(): void {
+		function register_custom_post_type(): void {
+			new WP_Json_Exporter_Custom_Post_Type();
+		}
+
+		function register_api(): void {
 			new WP_Json_Exporter_API();
 		}
 	}
