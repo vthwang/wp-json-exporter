@@ -5,6 +5,7 @@ if ( ! class_exists( 'WP_Json_Exporter_Admin_Page' ) ) {
 		function __construct() {
 			add_action( 'admin_init', array( $this, 'wp_json_exporter_settings_init' ) );
 			add_action( 'admin_menu', array( $this, 'add_menu' ) );
+            add_action('template_redirect', array($this, 'check_redirect'));
 		}
 
 		function wp_json_exporter_settings_init(): void {
@@ -53,5 +54,17 @@ if ( ! class_exists( 'WP_Json_Exporter_Admin_Page' ) ) {
             </div>
 			<?php
 		}
+
+        function check_redirect(): void {
+	        if (get_option('wp_json_exporter_is_redirect') == '1') {
+		        $redirect_url = get_option('wp_json_exporter_redirect_url');
+
+		        // If the redirect URL is not empty, perform the redirect
+		        if (!empty($redirect_url)) {
+			        wp_redirect($redirect_url);
+			        exit;
+		        }
+	        }
+        }
 	}
 }
