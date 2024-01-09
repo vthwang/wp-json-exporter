@@ -5,6 +5,8 @@ if ( ! class_exists( 'WP_Json_Exporter_Custom_Post_Type' ) ) {
 		function __construct() {
 			add_action( 'init', array( $this, 'register_project' ) );
 			add_action( 'init', array( $this, 'register_project_taxonomies' ) );
+			add_action( 'add_meta_boxes', array( $this, 'add_project_meta_boxes' ) );
+			add_action( 'save_post', array( $this, 'save_project_meta_boxes' ) );
 		}
 
 		function register_project(): void {
@@ -105,6 +107,128 @@ if ( ! class_exists( 'WP_Json_Exporter_Custom_Post_Type' ) ) {
 			);
 
 			register_taxonomy( 'project_category', array( 'project' ), $args );
+		}
+
+		function add_project_meta_boxes(): void {
+			add_meta_box( 'product_owner', 'Product Owner', array(
+				$this,
+				'product_owner_meta_callback'
+			), 'project', 'normal', 'high' );
+
+			add_meta_box( 'tech_stack', 'Tech Stack', array(
+				$this,
+				'tech_stack_meta_callback'
+			), 'project', 'normal', 'high' );
+
+			add_meta_box( 'website', 'Website', array(
+				$this,
+				'website_meta_callback'
+			), 'project', 'normal', 'high' );
+
+			add_meta_box( 'my_role', 'My Role', array(
+				$this,
+				'my_role_meta_callback'
+			), 'project', 'normal', 'high' );
+
+			add_meta_box( 'json_exporter_color', 'Color', array(
+				$this,
+				'color_meta_callback'
+			), 'project', 'normal', 'high' );
+		}
+
+		function product_owner_meta_callback( $post ): void {
+			wp_nonce_field( basename( __FILE__ ), 'product_owner_nonce' );
+			$product_owner = get_post_meta( $post->ID, 'product_owner', true );
+
+			echo '<input type="text" id="product_owner" name="product_owner" style="width: 100%;" value="' . esc_attr( $product_owner ) . '" />';
+		}
+
+		function tech_stack_meta_callback( $post ): void {
+			wp_nonce_field( basename( __FILE__ ), 'tech_stack_nonce' );
+			$tech_stack = get_post_meta( $post->ID, 'tech_stack', true );
+
+			echo '<textarea id="tech_stack" name="tech_stack" rows="4" cols="50">' . esc_textarea( $tech_stack ) . '</textarea>';
+		}
+
+
+		function website_meta_callback( $post ): void {
+			wp_nonce_field( basename( __FILE__ ), 'website_nonce' );
+			$website = get_post_meta( $post->ID, 'website', true );
+
+			echo '<input type="url" id="website" name="website" style="width: 100%;" value="' . esc_url( $website ) . '" />';
+		}
+
+		function my_role_meta_callback( $post ): void {
+			wp_nonce_field( basename( __FILE__ ), 'my_role_nonce' );
+			$my_role = get_post_meta( $post->ID, 'my_role', true );
+
+			echo '<textarea id="my_role" name="my_role" rows="4" cols="50">' . esc_textarea( $my_role ) . '</textarea>';
+		}
+
+		function color_meta_callback( $post ): void {
+			wp_nonce_field( basename( __FILE__ ), 'color_nonce' );
+			$color = get_post_meta( $post->ID, 'color', true );
+
+			echo '<input type="color" id="color" name="color" value="' . esc_attr( $color ) . '" />';
+		}
+
+		function save_project_meta_boxes( $post_id ): void {
+			// Check if our nonce is set.
+			if ( ! isset( $_POST['product_owner_nonce'] ) ||
+			     ! isset( $_POST['tech_stack_nonce'] ) ||
+			     ! isset( $_POST['website_nonce'] ) ||
+			     ! isset( $_POST['my_role_nonce'] ) ||
+			     ! isset( $_POST['color_nonce'] ) ) {
+				return;
+			}
+
+			// Verify that the nonce is valid.
+			if ( ! wp_verify_nonce( $_POST['product_owner_nonce'], basename( __FILE__ ) ) ||
+			     ! wp_verify_nonce( $_POST['tech_stack_nonce'], basename( __FILE__ ) ) ||
+			     ! wp_verify_nonce( $_POST['website_nonce'], basename( __FILE__ ) ) ||
+			     ! wp_verify_nonce( $_POST['my_role_nonce'], basename( __FILE__ ) ) ||
+			     ! wp_verify_nonce( $_POST['color_nonce'], basename( __FILE__ ) ) ) {
+				return;
+			}
+
+			// If this is an autosave, our form has not been submitted, so we don't want to do anything.
+			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+				return;
+			}
+
+			// Check the user's permissions.
+			if ( isset( $_POST['post_type'] ) && 'project' == $_POST['post_type'] ) {
+				if ( ! current_user_can( 'edit_page', $post_id ) ) {
+					return;
+				}
+			} else {
+				if ( ! current_user_can( 'edit_post', $post_id ) ) {
+					return;
+				}
+			}
+
+			// Make sure that it is set.
+			if ( ! isset( $_POST['product_owner'] ) ||
+			     ! isset( $_POST['tech_stack'] ) ||
+			     ! isset( $_POST['website'] ) ||
+			     ! isset( $_POST['my_role'] ) ||
+			     ! isset( $_POST['color'] ) ) {
+				return;
+			}
+
+			// Sanitize user input.
+			$product_owner_data = sanitize_text_field( $_POST['product_owner'] );
+			$tech_stack_data    = sanitize_textarea_field( $_POST['tech_stack'] );
+			$website_data       = esc_url_raw( $_POST['website'] );
+			$my_role_data       = sanitize_textarea_field( $_POST['my_role'] );
+			$color_data         = sanitize_hex_color( $_POST['color'] );
+
+			// Update the meta field in the database.
+			update_post_meta( $post_id, 'product_owner', $product_owner_data );
+			update_post_meta( $post_id, 'tech_stack', $tech_stack_data );
+			update_post_meta( $post_id, 'website', $website_data );
+			update_post_meta( $post_id, 'my_role', $my_role_data );
+			update_post_meta( $post_id, 'color', $color_data );
 		}
 	}
 }
