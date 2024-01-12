@@ -4,12 +4,8 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 	class WP_Json_Exporter_API {
 		private string $namespace = 'wp-json-exporter/v1';
 		private int $posts_per_page = 6;
-		private string $redirect_url;
-		private string $wordpress_url;
 
 		function __construct() {
-			$this->redirect_url  = get_option( 'wp_json_exporter_redirect_url' );
-			$this->wordpress_url = get_site_url();
 			add_action( 'rest_api_init', array( $this, 'register_api' ) );
 		}
 
@@ -181,32 +177,31 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 
 		private function get_post_data( $post, $type = 'post', $show_detail = true ): array {
 			$categories    = [];
-			$category_list = '';
 
 			if ( $type === 'post' ) {
-				$category_list = get_the_category_list( ', ', '', $post->ID );
+				$category_list = get_the_category( $post->ID );
+				foreach ($category_list as $category) {
+					$categories[] = $category->name;
+				}
 			} else if ( $type === 'project' ) {
 				$terms = get_the_terms( $post->ID, 'project_category' );
 				if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
 					foreach ( $terms as $term ) {
 						$term_link = get_term_link( $term );
 						if ( ! is_wp_error( $term_link ) ) {
-							$categories[] = '<a href="' . esc_url( $term_link ) . '">' . esc_html( $term->name ) . '</a>';
+							$categories[] = $term->name;
 						}
 					}
 				}
-				$category_list = implode( ', ', $categories );
 			}
-
-			$custom_category_list = str_replace( $this->wordpress_url, $this->redirect_url, $category_list );
 
 			if ( $show_detail ) {
 				return [
 					'title'          => $post->post_title,
 					'slug'           => $post->post_name,
 					'featured_image' => get_the_post_thumbnail_url( $post->ID, 'full' ),
-					'category'       => $custom_category_list,
-					'date'           => get_the_date( 'd M / Y', $post->ID ),
+					'category'       => $categories,
+					'date'           => get_the_date( 'Y-m-d', $post->ID ),
 					'content'        => apply_filters( 'the_content', $post->post_content ),
 					'excerpt'        => get_the_excerpt( $post->ID ),
 					'tags'           => wp_get_post_tags( $post->ID, array( 'fields' => 'names' ) ),
@@ -216,8 +211,8 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 					'title'          => $post->post_title,
 					'slug'           => $post->post_name,
 					'featured_image' => get_the_post_thumbnail_url( $post->ID, 'full' ),
-					'category'       => $custom_category_list,
-					'date'           => get_the_date( 'd M / Y', $post->ID ),
+					'category'       => $categories,
+					'date'           => get_the_date( 'Y-m-d', $post->ID ),
 				];
 			}
 		}
