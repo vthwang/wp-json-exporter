@@ -156,6 +156,16 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			}
 
 			$post = $posts[0];
+			$data = $this->get_post_data( $post, 'project' );
+
+			// Get Post meta
+			$specific_meta_keys = array( 'color', 'product_owner', 'website', 'tech_stack', 'my_role' );
+			foreach ( $specific_meta_keys as $key ) {
+				$value = get_post_meta( $post->ID, $key, true );
+				if ( $value ) {
+					$data['meta'][ $key ] = $value;
+				}
+			}
 
 			$next_post      = $this->get_adjacent_post_custom( $post->post_date, 'project', 'next' );
 			$next_post_data = null;
@@ -164,7 +174,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			}
 
 			return array(
-				'data' => $this->get_post_data( $post, 'project' ),
+				'data' => $data,
 				'next' => $next_post_data,
 			);
 		}
