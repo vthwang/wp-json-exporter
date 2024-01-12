@@ -202,6 +202,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 					'featured_image' => get_the_post_thumbnail_url( $post->ID, 'full' ),
 					'category'       => $categories,
 					'date'           => get_the_date( 'Y-m-d', $post->ID ),
+					'last_modified'  => get_the_modified_date( 'Y-m-d', $post->ID ),
 					'content'        => apply_filters( 'the_content', $post->post_content ),
 					'excerpt'        => get_the_excerpt( $post->ID ),
 					'tags'           => wp_get_post_tags( $post->ID, array( 'fields' => 'names' ) ),
