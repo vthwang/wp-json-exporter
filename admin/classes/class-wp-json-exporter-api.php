@@ -14,10 +14,30 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		}
 
 		function register_api(): void {
-			$this->register_route( '/posts', 'get_posts' );
-			$this->register_route( '/posts/(?P<slug>[a-zA-Z0-9-]+)', 'get_post' );
-			$this->register_route( '/projects', 'get_projects' );
-			$this->register_route( '/projects/(?P<slug>[a-zA-Z0-9-]+)', 'get_project' );
+			// Get all posts
+			register_rest_route( $this->namespace, '/posts', array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_posts' ),
+				'permission_callback' => '__return_true',
+			) );
+			// Get single post
+			register_rest_route( $this->namespace, '/posts/(?P<slug>[a-zA-Z0-9-]+)', array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_post' ),
+				'permission_callback' => '__return_true',
+			) );
+			// Get all projects
+			register_rest_route( $this->namespace, '/projects', array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_projects' ),
+				'permission_callback' => '__return_true',
+			) );
+			// Get single project
+			register_rest_route( $this->namespace, '/projects/(?P<slug>[a-zA-Z0-9-]+)', array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_project' ),
+				'permission_callback' => '__return_true',
+			) );
 		}
 
 		function get_posts( $request ): array {
@@ -147,14 +167,6 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 				'data' => $this->get_post_data( $post, 'project' ),
 				'next' => $next_post_data,
 			);
-		}
-
-		private function register_route( $route, $callback ): void {
-			register_rest_route( $this->namespace, $route, array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, $callback ),
-				'permission_callback' => '__return_true',
-			) );
 		}
 
 		private function get_post_data( $post, $type = 'post', $show_detail = true ): array {
