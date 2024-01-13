@@ -120,7 +120,9 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			$data  = [];
 
 			foreach ( $query->posts as $post ) {
-				$data[] = $this->get_post_data( $post, 'project', false );
+				$post_data = $this->get_post_data( $post, 'project', false );
+				$post_data = $this->get_post_meta( $post, $post_data );
+				$data[]    = $post_data;
 			}
 
 			$pagination_data = $this->get_pagination_data( 'project', $page );
@@ -155,13 +157,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			$data = $this->get_post_data( $post, 'project' );
 
 			// Get Post meta
-			$specific_meta_keys = array( 'color', 'product_owner', 'website', 'tech_stack', 'my_role' );
-			foreach ( $specific_meta_keys as $key ) {
-				$value = get_post_meta( $post->ID, $key, true );
-				if ( $value ) {
-					$data['meta'][ $key ] = $value;
-				}
-			}
+			$data = $this->get_post_meta( $post, $data );
 
 			$next_post      = $this->get_adjacent_post_custom( $post->post_date, 'project', 'next' );
 			$next_post_data = null;
@@ -176,11 +172,11 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		}
 
 		private function get_post_data( $post, $type = 'post', $show_detail = true ): array {
-			$categories    = [];
+			$categories = [];
 
 			if ( $type === 'post' ) {
 				$category_list = get_the_category( $post->ID );
-				foreach ($category_list as $category) {
+				foreach ( $category_list as $category ) {
 					$categories[] = $category->name;
 				}
 			} else if ( $type === 'project' ) {
@@ -235,6 +231,18 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 				'total_pages'  => $total_pages,
 				'total_posts'  => $total_posts,
 			);
+		}
+
+		private function get_post_meta( $post, $data ): array {
+			$specific_meta_keys = array( 'color', 'product_owner', 'website', 'tech_stack', 'my_role' );
+			foreach ( $specific_meta_keys as $key ) {
+				$value = get_post_meta( $post->ID, $key, true );
+				if ( $value ) {
+					$data['meta'][ $key ] = $value;
+				}
+			}
+
+			return $data;
 		}
 
 		private function get_adjacent_post_custom( $current_post_date, $post_type, $op ): ?WP_Post {
