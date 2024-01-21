@@ -1,42 +1,90 @@
 <?php
+/**
+ * WP JSON Exporter API
+ *
+ * @package WP_JSON_Exporter
+ */
 
 if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
+	/**
+	 * Class WP_Json_Exporter_API
+	 */
 	class WP_Json_Exporter_API {
+		/**
+		 * Namespace
+		 *
+		 * @var string
+		 */
 		private string $namespace = 'wp-json-exporter/v1';
+
+		/**
+		 * Posts per page
+		 *
+		 * @var int
+		 */
 		private int $posts_per_page = 6;
 
-		function __construct() {
+		/**
+		 * WP_Json_Exporter_API constructor.
+		 */
+		public function __construct() {
 			add_action( 'rest_api_init', array( $this, 'register_api' ) );
 		}
 
-		function register_api(): void {
-			// Get all posts
-			register_rest_route( $this->namespace, '/posts', array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'get_posts' ),
-				'permission_callback' => '__return_true',
-			) );
-			// Get single post
-			register_rest_route( $this->namespace, '/posts/(?P<slug>[a-zA-Z0-9-]+)', array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'get_post' ),
-				'permission_callback' => '__return_true',
-			) );
-			// Get all projects
-			register_rest_route( $this->namespace, '/projects', array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'get_projects' ),
-				'permission_callback' => '__return_true',
-			) );
-			// Get single project
-			register_rest_route( $this->namespace, '/projects/(?P<slug>[a-zA-Z0-9-]+)', array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'get_project' ),
-				'permission_callback' => '__return_true',
-			) );
+		/**
+		 * Register API
+		 */
+		public function register_api(): void {
+			/** Get all posts */
+			register_rest_route(
+				$this->namespace,
+				'/posts',
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_posts' ),
+					'permission_callback' => '__return_true',
+				)
+			);
+			/** Get single post */
+			register_rest_route(
+				$this->namespace,
+				'/posts/(?P<slug>[a-zA-Z0-9-]+)',
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_post' ),
+					'permission_callback' => '__return_true',
+				)
+			);
+			/** Get all projects */
+			register_rest_route(
+				$this->namespace,
+				'/projects',
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_projects' ),
+					'permission_callback' => '__return_true',
+				)
+			);
+			/** Get single project */
+			register_rest_route(
+				$this->namespace,
+				'/projects/(?P<slug>[a-zA-Z0-9-]+)',
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_project' ),
+					'permission_callback' => '__return_true',
+				)
+			);
 		}
 
-		function get_posts( $request ): array {
+		/**
+		 * Get all posts
+		 *
+		 * @param WP_REST_Request $request Request.
+		 *
+		 * @return array
+		 */
+		public function get_posts( WP_REST_Request $request ): array {
 			$page = $request->get_param( 'page' ) ? (int) $request->get_param( 'page' ) : 1;
 
 			$args = array(
@@ -49,7 +97,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			);
 
 			$query = new WP_Query( $args );
-			$data  = [];
+			$data  = array();
 
 			foreach ( $query->posts as $post ) {
 				$data[] = $this->get_post_data( $post, 'post', false );
@@ -57,24 +105,31 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 
 			$pagination_data = $this->get_pagination_data( 'post', $page );
 
-			return [
+			return array(
 				'data' => $data,
-				'meta' => [
+				'meta' => array(
 					'current_page' => $pagination_data['current_page'],
 					'total_pages'  => $pagination_data['total_pages'],
 					'total_posts'  => $pagination_data['total_posts'],
-				]
-			];
+				),
+			);
 		}
 
-		function get_post( $request ): array|WP_Error {
+		/**
+		 * Get single post
+		 *
+		 * @param WP_REST_Request $request Request.
+		 *
+		 * @return array|WP_Error
+		 */
+		public function get_post( WP_REST_Request $request ): array|WP_Error {
 			$slug = $request['slug'];
 
 			$args = array(
 				'name'        => $slug,
 				'post_type'   => 'post',
 				'post_status' => 'publish',
-				'numberposts' => 1
+				'numberposts' => 1,
 			);
 
 			$posts = get_posts( $args );
@@ -104,7 +159,14 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			);
 		}
 
-		function get_projects( $request ): array {
+		/**
+		 * Get all projects
+		 *
+		 * @param WP_REST_Request $request Request.
+		 *
+		 * @return array
+		 */
+		public function get_projects( WP_REST_Request $request ): array {
 			$page = $request->get_param( 'page' ) ? (int) $request->get_param( 'page' ) : 1;
 
 			$args = array(
@@ -117,7 +179,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			);
 
 			$query = new WP_Query( $args );
-			$data  = [];
+			$data  = array();
 
 			foreach ( $query->posts as $post ) {
 				$post_data = $this->get_post_data( $post, 'project', false );
@@ -127,24 +189,31 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 
 			$pagination_data = $this->get_pagination_data( 'project', $page );
 
-			return [
+			return array(
 				'data' => $data,
 				'meta' => array(
 					'current_page' => $pagination_data['current_page'],
 					'total_pages'  => $pagination_data['total_pages'],
 					'total_posts'  => $pagination_data['total_posts'],
-				)
-			];
+				),
+			);
 		}
 
-		function get_project( $request ): array|WP_Error {
+		/**
+		 * Get single project
+		 *
+		 * @param WP_REST_Request $request Request.
+		 *
+		 * @return array|WP_Error
+		 */
+		public function get_project( WP_REST_Request $request ): array|WP_Error {
 			$slug = $request['slug'];
 
 			$args = array(
 				'name'        => $slug,
 				'post_type'   => 'project',
 				'post_status' => 'publish',
-				'numberposts' => 1
+				'numberposts' => 1,
 			);
 
 			$posts = get_posts( $args );
@@ -156,7 +225,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			$post = $posts[0];
 			$data = $this->get_post_data( $post, 'project' );
 
-			// Get Post meta
+			/** Get Post meta */
 			$data = $this->get_post_meta( $post, $data );
 
 			$next_post      = $this->get_adjacent_post_custom( $post->post_date, 'project', 'next' );
@@ -171,15 +240,24 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			);
 		}
 
-		private function get_post_data( $post, $type = 'post', $show_detail = true ): array {
-			$categories = [];
+		/**
+		 * Get post data
+		 *
+		 * @param WP_Post $post Post.
+		 * @param string  $type Post type.
+		 * @param bool    $show_detail Show detail.
+		 *
+		 * @return array
+		 */
+		private function get_post_data( WP_Post $post, string $type = 'post', bool $show_detail = true ): array {
+			$categories = array();
 
-			if ( $type === 'post' ) {
+			if ( 'post' === $type ) {
 				$category_list = get_the_category( $post->ID );
 				foreach ( $category_list as $category ) {
 					$categories[] = $category->name;
 				}
-			} else if ( $type === 'project' ) {
+			} elseif ( 'project' === $type ) {
 				$terms = get_the_terms( $post->ID, 'project_category' );
 				if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
 					foreach ( $terms as $term ) {
@@ -192,7 +270,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			}
 
 			if ( $show_detail ) {
-				return [
+				return array(
 					'title'          => $post->post_title,
 					'slug'           => $post->post_name,
 					'featured_image' => get_the_post_thumbnail_url( $post->ID, 'full' ),
@@ -202,23 +280,32 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 					'content'        => apply_filters( 'the_content', $post->post_content ),
 					'excerpt'        => get_the_excerpt( $post->ID ),
 					'tags'           => wp_get_post_tags( $post->ID, array( 'fields' => 'names' ) ),
-				];
+				);
 			} else {
-				return [
+				return array(
 					'title'          => $post->post_title,
 					'slug'           => $post->post_name,
 					'featured_image' => get_the_post_thumbnail_url( $post->ID, 'full' ),
 					'category'       => $categories,
 					'date'           => get_the_date( 'Y-m-d', $post->ID ),
-				];
+				);
 			}
 		}
 
-		private function get_pagination_data( $post_type, $current_page = 1 ): array {
+		/**
+		 * Get pagination data
+		 *
+		 * @param string $post_type Post type.
+		 * @param int    $current_page Current page.
+		 *
+		 * @return array
+		 */
+		private function get_pagination_data( string $post_type, int $current_page = 1 ): array {
 			$count_args = array(
 				'post_type'      => $post_type,
 				'posts_per_page' => - 1,
-				'fields'         => 'ids', // optimize query for performance
+				'fields'         => 'ids',
+				/** Optimize query for performance */
 			);
 
 			$count_query  = new WP_Query( $count_args );
@@ -233,7 +320,15 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			);
 		}
 
-		private function get_post_meta( $post, $data ): array {
+		/**
+		 * Get post meta
+		 *
+		 * @param WP_Post $post Post.
+		 * @param array   $data Data.
+		 *
+		 * @return array
+		 */
+		private function get_post_meta( WP_Post $post, array $data ): array {
 			$specific_meta_keys = array( 'color', 'product_owner', 'website', 'tech_stack', 'my_role' );
 			foreach ( $specific_meta_keys as $key ) {
 				$value = get_post_meta( $post->ID, $key, true );
@@ -245,19 +340,28 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			return $data;
 		}
 
-		private function get_adjacent_post_custom( $current_post_date, $post_type, $op ): ?WP_Post {
+		/**
+		 * Get adjacent post custom
+		 *
+		 * @param string $current_post_date Current post date.
+		 * @param string $post_type Post type.
+		 * @param string $op Operation.
+		 *
+		 * @return WP_Post|null
+		 */
+		private function get_adjacent_post_custom( string $current_post_date, string $post_type, string $op ): ?WP_Post {
 			$args = array(
 				'post_type'   => $post_type,
 				'post_status' => 'publish',
 				'numberposts' => 1,
 				'orderby'     => 'date',
-				'order'       => $op == 'prev' ? 'DESC' : 'ASC',
+				'order'       => 'prev' === $op ? 'DESC' : 'ASC',
 				'date_query'  => array(
 					array(
-						$op == 'prev' ? 'before' : 'after' => $current_post_date,
-						'inclusive'                        => false
-					)
-				)
+						'prev' === $op ? 'before' : 'after' => $current_post_date,
+						'inclusive' => false,
+					),
+				),
 			);
 
 			$adjacent_posts = get_posts( $args );
