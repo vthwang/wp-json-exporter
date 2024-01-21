@@ -3,7 +3,7 @@
  * Plugin Name:       WordPress JSON Exporter
  * Plugin URI:        https://github.com/vthwang/wp-json-exporter
  * Description:       Customized for blog systems, this plugin enables the export of your WordPress posts and projects in JSON format.
- * Version:           1.0.1
+ * Version:           1.0.2
  * Requires at least: 6.4
  * Text Domain:       wp-json-exporter
  * Author:            Vincent Wang
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! class_exists( 'WPJsonExporter' ) ) {
-	define( 'WP_JSON_EXPORTER_VERSION', '1.0.1' );
+	define( 'WP_JSON_EXPORTER_VERSION', '1.0.2' );
 	define( 'WP_JSON_EXPORTER_DIR', __DIR__ );
 
 	/**
