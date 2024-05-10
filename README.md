@@ -19,7 +19,7 @@ Export JSON API for Next.js blog, with support for posts and projects.
 
 ### Base URL
 
-`[YOUR_WORDPRESS_SITE_URL]/wp-json/json-exporter/v1`
+`[YOUR_WORDPRESS_SITE_URL]/wp-json/wp-json-exporter/v1`
 
 ### Endpoints
 
