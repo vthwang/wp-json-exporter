@@ -25,10 +25,27 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		private int $posts_per_page = 6;
 
 		/**
+		 * WPDB
+		 *
+		 * @var wpdb
+		 */
+		protected wpdb $wpdb;
+
+		/**
+		 * Table name
+		 *
+		 * @var string
+		 */
+		protected string $table_name;
+
+		/**
 		 * WP_Json_Exporter_API constructor.
 		 */
 		public function __construct() {
 			add_action( 'rest_api_init', array( $this, 'register_api' ) );
+			global $wpdb;
+			$this->wpdb       = $wpdb;
+			$this->table_name = $wpdb->prefix . WP_JSON_EXPORTER_VISITS_TABLE;
 		}
 
 		/**
@@ -392,16 +409,13 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 				return new WP_Error( 'missing_route', 'No `route` provided', array( 'status' => 400 ) );
 			}
 
-			global $wpdb;
-			$table_name = $wpdb->prefix . WP_JSON_EXPORTER_VISITS_TABLE;
-
-			$route_exists = $wpdb->get_var( $wpdb->prepare( "SELECT count FROM $table_name WHERE route = %s", $route ) ); // phpcs:ignore
+			$route_exists = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT count FROM $this->table_name WHERE route = %s", $route ) ); // phpcs:ignore
 
 			if ( null !== $route_exists ) {
-				$wpdb->query( $wpdb->prepare( "UPDATE $table_name SET count = count + 1 WHERE route = %s", $route ) ); // phpcs:ignore
+				$this->wpdb->query( $this->wpdb->prepare( "UPDATE $this->table_name SET count = count + 1 WHERE route = %s", $route ) ); // phpcs:ignore
 			} else {
-				$wpdb->insert(
-					$table_name,
+				$this->wpdb->insert(
+					$this->table_name,
 					array(
 						'route' => $route,
 						'count' => 1,
