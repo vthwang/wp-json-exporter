@@ -23,10 +23,15 @@ if ( ! class_exists( 'WP_Json_Exporter_Uninstall' ) ) {
 			delete_option( 'wp_json_exporter_is_redirect' );
 			delete_option( 'wp_json_exporter_redirect_url' );
 			/** Remove visits table */
-			self::wp_json_exporter_uninstall();
+			self::delete_visits_table();
 		}
 
-		private static function wp_json_exporter_uninstall() {
+		/**
+		 * Create the visits table.
+		 *
+		 * This method deletes the visits table for the plugin.
+		 */
+		private static function delete_visits_table(): void {
 			global $wpdb;
 			$table_name = $wpdb->prefix . WP_JSON_EXPORTER_VISITS_TABLE;
 

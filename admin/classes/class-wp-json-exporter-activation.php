@@ -31,6 +31,11 @@ if ( ! class_exists( 'WP_Json_Exporter_Activation' ) ) {
 			self::create_visits_table();
 		}
 
+		/**
+		 * Create the visits table.
+		 *
+		 * This method creates the visits table for the plugin.
+		 */
 		private static function create_visits_table(): void {
 			global $wpdb;
 			$table_name      = $wpdb->prefix . WP_JSON_EXPORTER_VISITS_TABLE;
