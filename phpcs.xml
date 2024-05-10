@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <ruleset name="WordPress Coding Standards for WP JSON Exporter">
     <!-- Specify WordPress coding standards -->
-    <rule ref="WordPress"/>
+    <rule ref="WordPress-Extra"/>
 
     <!-- Exclude main plugin file from specific sniffs -->
     <rule ref="WordPress.Files.FileName.InvalidClassFileName">

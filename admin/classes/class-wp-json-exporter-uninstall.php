@@ -22,6 +22,16 @@ if ( ! class_exists( 'WP_Json_Exporter_Uninstall' ) ) {
 			delete_option( 'wp_json_exporter_version' );
 			delete_option( 'wp_json_exporter_is_redirect' );
 			delete_option( 'wp_json_exporter_redirect_url' );
+			/** Remove visits table */
+			self::wp_json_exporter_uninstall();
+		}
+
+		private static function wp_json_exporter_uninstall() {
+			global $wpdb;
+			$table_name = $wpdb->prefix . WP_JSON_EXPORTER_VISITS_TABLE;
+
+			$sql = $wpdb->prepare( 'DROP TABLE IF EXISTS %s', $table_name );
+			$wpdb->query( $sql ); // phpcs:ignore
 		}
 	}
 }
