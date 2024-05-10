@@ -179,10 +179,18 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 				$next_post_data = $this->get_post_data( $next_post, 'post', false );
 			}
 
+			/** Get Visits Data */
+			$route       = '/posts/' . $slug;
+			$visit_count = $this->wpdb->get_var(
+				$this->wpdb->prepare( "SELECT count FROM {$this->table_name} WHERE route = %s", $route ) // phpcs:ignore
+			);
+			$visit_count = $visit_count ? (int) $visit_count : 0;
+
 			return array(
-				'data' => $this->get_post_data( $post ),
-				'prev' => $previous_post_data,
-				'next' => $next_post_data,
+				'data'   => $this->get_post_data( $post ),
+				'visits' => $visit_count,
+				'prev'   => $previous_post_data,
+				'next'   => $next_post_data,
 			);
 		}
 
@@ -261,9 +269,17 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 				$next_post_data = $this->get_post_data( $next_post, 'project', false );
 			}
 
+			/** Get Visits Data */
+			$route       = '/projects/' . $slug;
+			$visit_count = $this->wpdb->get_var(
+				$this->wpdb->prepare( "SELECT count FROM {$this->table_name} WHERE route = %s", $route ) // phpcs:ignore
+			);
+			$visit_count = $visit_count ? (int) $visit_count : 0;
+
 			return array(
-				'data' => $data,
-				'next' => $next_post_data,
+				'data'   => $data,
+				'visits' => $visit_count,
+				'next'   => $next_post_data,
 			);
 		}
 
@@ -406,7 +422,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		public function update_visits( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 			$route = $request->get_param( 'route' );
 			if ( ! $route ) {
-				return new WP_Error( 'missing_route', 'No `route` provided', array( 'status' => 400 ) );
+				return new WP_Error( 'missing_route', __( 'No `route` provided' ), array( 'status' => 400 ) );
 			}
 
 			$route_exists = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT count FROM $this->table_name WHERE route = %s", $route ) ); // phpcs:ignore
