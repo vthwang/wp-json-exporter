@@ -44,8 +44,8 @@ if ( ! class_exists( 'WP_Json_Exporter_Activation' ) ) {
 				id mediumint(9) NOT NULL AUTO_INCREMENT,
 		        route varchar(255) NOT NULL,
 		        count bigint(20) DEFAULT 0 NOT NULL,
-		        createdAt datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
-		        updatedAt datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+		        created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+		        updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
 		        PRIMARY KEY  (id),
 		        UNIQUE KEY route (route)
 			) $charset_collate;";

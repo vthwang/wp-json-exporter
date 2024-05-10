@@ -75,6 +75,16 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 					'permission_callback' => '__return_true',
 				)
 			);
+			/** Update visits */
+			register_rest_route(
+				$this->namespace,
+				'/visits',
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'update_visits' ),
+					'permission_callback' => '__return_true',
+				)
+			);
 		}
 
 		/**
@@ -244,8 +254,8 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		 * Get post data
 		 *
 		 * @param WP_Post $post Post.
-		 * @param string  $type Post type.
-		 * @param bool    $show_detail Show detail.
+		 * @param string $type Post type.
+		 * @param bool $show_detail Show detail.
 		 *
 		 * @return array
 		 */
@@ -296,7 +306,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		 * Get pagination data
 		 *
 		 * @param string $post_type Post type.
-		 * @param int    $current_page Current page.
+		 * @param int $current_page Current page.
 		 *
 		 * @return array
 		 */
@@ -324,7 +334,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		 * Get post meta
 		 *
 		 * @param WP_Post $post Post.
-		 * @param array   $data Data.
+		 * @param array $data Data.
 		 *
 		 * @return array
 		 */
@@ -367,6 +377,40 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			$adjacent_posts = get_posts( $args );
 
 			return ! empty( $adjacent_posts ) ? $adjacent_posts[0] : null;
+		}
+
+		/**
+		 * Update visits
+		 *
+		 * @param WP_REST_Request $request Request.
+		 *
+		 * @return WP_REST_Response|WP_Error
+		 */
+		public function update_visits( WP_REST_Request $request ): WP_REST_Response|WP_Error {
+			$route = $request->get_param( 'route' );
+			if ( ! $route ) {
+				return new WP_Error( 'missing_route', 'No `route` provided', array( 'status' => 400 ) );
+			}
+
+			global $wpdb;
+			$table_name = $wpdb->prefix . WP_JSON_EXPORTER_VISITS_TABLE;
+
+			$route_exists = $wpdb->get_var( $wpdb->prepare( "SELECT count FROM $table_name WHERE route = %s", $route ) ); // phpcs:ignore
+
+			if ( null !== $route_exists ) {
+				$wpdb->query( $wpdb->prepare( "UPDATE $table_name SET count = count + 1 WHERE route = %s", $route ) ); // phpcs:ignore
+			} else {
+				$wpdb->insert(
+					$table_name,
+					array(
+						'route' => $route,
+						'count' => 1,
+					),
+					array( '%s', '%d' )
+				);
+			}
+
+			return new WP_REST_Response( 'Route updated successfully', 200 );
 		}
 	}
 }
