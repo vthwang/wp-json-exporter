@@ -14,5 +14,5 @@ cd wp-json-exporter || exit
 rm -rf .git .idea .github .gitignore phpcs.xml Release.md release.sh
 
 cd ..
-zip -r "wp-json-exporter-$version.zip" wp-json-exporter
+zip -r "wp-json-exporter-$version.zip" wp-json-exporter -x "*.DS_Store" -x "MACOSX"
 rm -rf "wp-json-exporter"
