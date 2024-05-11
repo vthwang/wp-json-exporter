@@ -25,10 +25,27 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		private int $posts_per_page = 6;
 
 		/**
+		 * WPDB
+		 *
+		 * @var wpdb
+		 */
+		protected wpdb $wpdb;
+
+		/**
+		 * Table name
+		 *
+		 * @var string
+		 */
+		protected string $table_name;
+
+		/**
 		 * WP_Json_Exporter_API constructor.
 		 */
 		public function __construct() {
 			add_action( 'rest_api_init', array( $this, 'register_api' ) );
+			global $wpdb;
+			$this->wpdb       = $wpdb;
+			$this->table_name = $wpdb->prefix . WP_JSON_EXPORTER_VISITS_TABLE;
 		}
 
 		/**
@@ -75,6 +92,26 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 					'permission_callback' => '__return_true',
 				)
 			);
+			/** Get total visits */
+			register_rest_route(
+				$this->namespace,
+				'/visits',
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_visits' ),
+					'permission_callback' => '__return_true',
+				)
+			);
+			/** Update visits */
+			register_rest_route(
+				$this->namespace,
+				'/visits',
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'update_visits' ),
+					'permission_callback' => '__return_true',
+				)
+			);
 		}
 
 		/**
@@ -82,9 +119,9 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		 *
 		 * @param WP_REST_Request $request Request.
 		 *
-		 * @return array
+		 * @return WP_REST_Response
 		 */
-		public function get_posts( WP_REST_Request $request ): array {
+		public function get_posts( WP_REST_Request $request ): WP_REST_Response {
 			$page = $request->get_param( 'page' ) ? (int) $request->get_param( 'page' ) : 1;
 
 			$args = array(
@@ -104,8 +141,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			}
 
 			$pagination_data = $this->get_pagination_data( 'post', $page );
-
-			return array(
+			$response        = array(
 				'data' => $data,
 				'meta' => array(
 					'current_page' => $pagination_data['current_page'],
@@ -113,6 +149,8 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 					'total_posts'  => $pagination_data['total_posts'],
 				),
 			);
+
+			return new WP_REST_Response( $response, 200 );
 		}
 
 		/**
@@ -120,9 +158,9 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		 *
 		 * @param WP_REST_Request $request Request.
 		 *
-		 * @return array|WP_Error
+		 * @return WP_REST_Response|WP_Error
 		 */
-		public function get_post( WP_REST_Request $request ): array|WP_Error {
+		public function get_post( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 			$slug = $request['slug'];
 
 			$args = array(
@@ -152,11 +190,23 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 				$next_post_data = $this->get_post_data( $next_post, 'post', false );
 			}
 
-			return array(
-				'data' => $this->get_post_data( $post ),
+			/** Get Visits Data */
+			$route       = '/posts/' . $slug;
+			$visit_count = $this->wpdb->get_var(
+				$this->wpdb->prepare( "SELECT count FROM {$this->table_name} WHERE route = %s", $route ) // phpcs:ignore
+			);
+			$visit_count = $visit_count ? (int) $visit_count : 0;
+
+			$data           = $this->get_post_data( $post );
+			$data['visits'] = $visit_count;
+
+			$response = array(
+				'data' => $data,
 				'prev' => $previous_post_data,
 				'next' => $next_post_data,
 			);
+
+			return new WP_REST_Response( $response, 200 );
 		}
 
 		/**
@@ -164,9 +214,9 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		 *
 		 * @param WP_REST_Request $request Request.
 		 *
-		 * @return array
+		 * @return WP_REST_Response
 		 */
-		public function get_projects( WP_REST_Request $request ): array {
+		public function get_projects( WP_REST_Request $request ): WP_REST_Response {
 			$page = $request->get_param( 'page' ) ? (int) $request->get_param( 'page' ) : 1;
 
 			$args = array(
@@ -188,8 +238,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			}
 
 			$pagination_data = $this->get_pagination_data( 'project', $page );
-
-			return array(
+			$response        = array(
 				'data' => $data,
 				'meta' => array(
 					'current_page' => $pagination_data['current_page'],
@@ -197,6 +246,8 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 					'total_posts'  => $pagination_data['total_posts'],
 				),
 			);
+
+			return new WP_REST_Response( $response, 200 );
 		}
 
 		/**
@@ -204,9 +255,9 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		 *
 		 * @param WP_REST_Request $request Request.
 		 *
-		 * @return array|WP_Error
+		 * @return WP_REST_Response|WP_Error
 		 */
-		public function get_project( WP_REST_Request $request ): array|WP_Error {
+		public function get_project( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 			$slug = $request['slug'];
 
 			$args = array(
@@ -234,18 +285,28 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 				$next_post_data = $this->get_post_data( $next_post, 'project', false );
 			}
 
-			return array(
+			/** Get Visits Data */
+			$route          = '/projects/' . $slug;
+			$visit_count    = $this->wpdb->get_var(
+				$this->wpdb->prepare( "SELECT count FROM {$this->table_name} WHERE route = %s", $route ) // phpcs:ignore
+			);
+			$visit_count    = $visit_count ? (int) $visit_count : 0;
+			$data['visits'] = $visit_count;
+
+			$response = array(
 				'data' => $data,
 				'next' => $next_post_data,
 			);
+
+			return new WP_REST_Response( $response, 200 );
 		}
 
 		/**
 		 * Get post data
 		 *
 		 * @param WP_Post $post Post.
-		 * @param string  $type Post type.
-		 * @param bool    $show_detail Show detail.
+		 * @param string $type Post type.
+		 * @param bool $show_detail Show detail.
 		 *
 		 * @return array
 		 */
@@ -296,7 +357,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		 * Get pagination data
 		 *
 		 * @param string $post_type Post type.
-		 * @param int    $current_page Current page.
+		 * @param int $current_page Current page.
 		 *
 		 * @return array
 		 */
@@ -324,7 +385,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		 * Get post meta
 		 *
 		 * @param WP_Post $post Post.
-		 * @param array   $data Data.
+		 * @param array $data Data.
 		 *
 		 * @return array
 		 */
@@ -367,6 +428,59 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			$adjacent_posts = get_posts( $args );
 
 			return ! empty( $adjacent_posts ) ? $adjacent_posts[0] : null;
+		}
+
+		/**
+		 * Get total visits
+		 *
+		 * @return WP_REST_Response
+		 */
+		public function get_visits(): WP_REST_Response {
+			$visits = $this->wpdb->get_var( "SELECT SUM(count) FROM $this->table_name" ); // phpcs:ignore
+
+			$response = array(
+				'data' => (int) $visits,
+			);
+
+			return new WP_REST_Response( $response, 200 );
+		}
+
+		/**
+		 * Update visits
+		 *
+		 * @param WP_REST_Request $request Request.
+		 *
+		 * @return WP_REST_Response|WP_Error
+		 */
+		public function update_visits( WP_REST_Request $request ): WP_REST_Response|WP_Error {
+			$route = $request->get_param( 'route' );
+			if ( ! $route ) {
+				return new WP_Error( 'missing_route', __( 'No `route` provided' ), array( 'status' => 400 ) );
+			}
+
+			$route_exists = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT count FROM $this->table_name WHERE route = %s", $route ) ); // phpcs:ignore
+
+			if ( null !== $route_exists ) {
+				$this->wpdb->query( $this->wpdb->prepare( "UPDATE $this->table_name SET count = count + 1 WHERE route = %s", $route ) ); // phpcs:ignore
+			} else {
+				$this->wpdb->insert(
+					$this->table_name,
+					array(
+						'route' => $route,
+						'count' => 1,
+					),
+					array( '%s', '%d' )
+				);
+			}
+
+			$response = array(
+				'data' => array(
+					'route' => $route,
+					'count' => null !== $route_exists ? (int) $route_exists + 1 : 1,
+				),
+			);
+
+			return new WP_REST_Response( $response, 200 );
 		}
 	}
 }
