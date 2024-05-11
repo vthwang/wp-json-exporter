@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! class_exists( 'WPJsonExporter' ) ) {
-	define( 'WP_JSON_EXPORTER_VERSION', '1.0.2' );
+	define( 'WP_JSON_EXPORTER_VERSION', '1.0.3' );
 	define( 'WP_JSON_EXPORTER_DIR', __DIR__ );
 	define( 'WP_JSON_EXPORTER_VISITS_TABLE', 'json_exporter_visits' );
 
