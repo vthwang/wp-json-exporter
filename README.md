@@ -70,7 +70,8 @@ Export JSON API for Next.js blog, with support for posts and projects.
             "date": "2024-01-01",
             "last_modified": "2024-01-01",
             "content": "\n<h1 class=\"wp-block-heading\">Hello World</h1>",
-            "tags": []
+            "tags": [],
+            "visits": 1234
         },
         "prev": {
             "title": "Hello World 0",
@@ -154,7 +155,8 @@ Export JSON API for Next.js blog, with support for posts and projects.
                 "website": "https://vthwang.com/",
                 "tech_stack": "- WordPress",
                 "my_role": "- Product Engineer"
-            }
+            },
+            "visits": 1234
         },
         "next": {
             "title": "Hello World 1",
@@ -183,6 +185,7 @@ Export JSON API for Next.js blog, with support for posts and projects.
 6. Update visits
    - Method: POST
    - Description: Increments the visit count for a specified route. If the route does not exist, it creates a new entry for it.
+   - **Note**: For posts and projects, the route should be formatted as /posts/[slug] or /projects/[slug] where [slug] is the unique identifier of the post or project. After utilizing this formatted route, you can access the 'visits' field when retrieving a single post or project.
    - Sample Request: [Base URL]/visits
    - Parameters:
      - route (string, required): The route to update the visit count for.
