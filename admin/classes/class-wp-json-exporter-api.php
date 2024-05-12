@@ -193,7 +193,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			/** Get Visits Data */
 			$route       = '/posts/' . $slug;
 			$visit_count = $this->wpdb->get_var(
-				$this->wpdb->prepare( "SELECT count FROM {$this->table_name} WHERE route = %s", $route ) // phpcs:ignore
+				$this->wpdb->prepare( "SELECT count FROM $this->table_name WHERE route = %s", $route ) // phpcs:ignore
 			);
 			$visit_count = $visit_count ? (int) $visit_count : 0;
 
@@ -288,7 +288,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			/** Get Visits Data */
 			$route          = '/projects/' . $slug;
 			$visit_count    = $this->wpdb->get_var(
-				$this->wpdb->prepare( "SELECT count FROM {$this->table_name} WHERE route = %s", $route ) // phpcs:ignore
+				$this->wpdb->prepare( "SELECT count FROM $this->table_name WHERE route = %s", $route ) // phpcs:ignore
 			);
 			$visit_count    = $visit_count ? (int) $visit_count : 0;
 			$data['visits'] = $visit_count;
@@ -436,7 +436,14 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		 * @return WP_REST_Response
 		 */
 		public function get_visits(): WP_REST_Response {
-			$visits = $this->wpdb->get_var( "SELECT SUM(count) FROM $this->table_name" ); // phpcs:ignore
+			// phpcs:ignore
+			$route = $_GET['route'] ?? null;
+
+			if ( $route ) {
+				$visits = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT count FROM $this->table_name WHERE route = %s", $route ) ); // phpcs:ignore
+			} else {
+				$visits = $this->wpdb->get_var( "SELECT SUM(count) FROM $this->table_name" ); // phpcs:ignore
+			}
 
 			$response = array(
 				'data' => (int) $visits,
