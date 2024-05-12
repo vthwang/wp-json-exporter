@@ -193,7 +193,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			/** Get Visits Data */
 			$route       = '/posts/' . $slug;
 			$visit_count = $this->wpdb->get_var(
-				$this->wpdb->prepare( "SELECT count FROM {$this->table_name} WHERE route = %s", $route ) // phpcs:ignore
+				$this->wpdb->prepare( "SELECT count FROM $this->table_name WHERE route = %s", $route ) // phpcs:ignore
 			);
 			$visit_count = $visit_count ? (int) $visit_count : 0;
 
@@ -288,7 +288,7 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 			/** Get Visits Data */
 			$route          = '/projects/' . $slug;
 			$visit_count    = $this->wpdb->get_var(
-				$this->wpdb->prepare( "SELECT count FROM {$this->table_name} WHERE route = %s", $route ) // phpcs:ignore
+				$this->wpdb->prepare( "SELECT count FROM $this->table_name WHERE route = %s", $route ) // phpcs:ignore
 			);
 			$visit_count    = $visit_count ? (int) $visit_count : 0;
 			$data['visits'] = $visit_count;
