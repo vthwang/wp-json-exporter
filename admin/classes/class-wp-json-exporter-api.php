@@ -436,7 +436,14 @@ if ( ! class_exists( 'WP_Json_Exporter_API' ) ) {
 		 * @return WP_REST_Response
 		 */
 		public function get_visits(): WP_REST_Response {
-			$visits = $this->wpdb->get_var( "SELECT SUM(count) FROM $this->table_name" ); // phpcs:ignore
+			// phpcs:ignore
+			$route = $_GET['route'] ?? null;
+
+			if ( $route ) {
+				$visits = $this->wpdb->get_var( $this->wpdb->prepare( "SELECT count FROM $this->table_name WHERE route = %s", $route ) ); // phpcs:ignore
+			} else {
+				$visits = $this->wpdb->get_var( "SELECT SUM(count) FROM $this->table_name" ); // phpcs:ignore
+			}
 
 			$response = array(
 				'data' => (int) $visits,

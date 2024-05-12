@@ -173,7 +173,9 @@ Export JSON API for Next.js blog, with support for posts and projects.
 5. Get all visits
    - Method: GET
    - Description: Retrieves the total number of visits across all routes.
-   - Sample Request: [Base URL]/visits
+   - Sample Requests:
+     - To retrieve the total visits for all routes: [Base URL]/visits.
+     - To retrieve visits for a specific route: [Base URL]/visits?route=/example-route.
    - Response Example
 
     ```json
